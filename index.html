@@ -92,7 +92,7 @@
       z-index: 9000;
     }
     #beat-flash.active {
-      animation: shockwavePulse 2.5s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+      animation: shockwavePulse 2.4s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
     }
     @keyframes shockwavePulse {
       0% { opacity: 0.95; }
@@ -110,7 +110,7 @@
       40%, 60% { transform: translate3d(4px, -3px, 0); }
     }
 
-    /* SONIC BASS RIPPLES RADIATING WITH THE DRUM KICKS */
+    /* SONIC BASS RIPPLES RADIATING OUTWARD FROM THE CARD */
     .sound-ripple {
       position: fixed;
       border-radius: 50%;
@@ -159,14 +159,12 @@
       border: 1px solid rgba(210, 230, 255, 0.25); border-radius: 11px; pointer-events: none;
     }
 
-    /* CLIMAX BLOOM (Rhythmic pulse on the beat drop) */
     .sad-card.climax-bloom {
       border-color: rgba(188, 227, 255, 0.95) !important;
       box-shadow: 
         0 30px 65px rgba(0, 0, 0, 0.95),
         0 0 55px rgba(144, 205, 244, 0.75),
         inset 0 0 25px rgba(144, 205, 244, 0.35) !important;
-      /* Undulating S-Curve motion that flows with the sound */
       animation: soundwaveClimaxFloat 6.8s cubic-bezier(0.16, 0.9, 0.3, 1) forwards !important;
     }
 
@@ -360,7 +358,7 @@
 </head>
 <body>
 
-  <!-- Audio source from your uploaded video -->
+  <!-- Direct Link to your uploaded video -->
   <video id="song-player" playsinline webkit-playsinline preload="auto">
     <source src="f12117c668798929d30d9a1344321ba7.mp4" type="video/mp4">
   </video>
@@ -431,18 +429,22 @@
       { time: 8.5,  text: "ទីកន្លែងដែលយើងធ្លាប់ទៅជាមួយគ្នា សើចជាមួយគ្នា", duration: 4.2, emote: "( . . )" },
       { time: 13.2, text: "ក្លាយទៅជាកន្លែង ដែលបងមិនចង់ឮ...", duration: 3.2, emote: "</3" },
       { time: 16.8, text: "បេះដូងបងឈឺ... ហា... ហា...",   duration: 3.2, emote: "[ 💔 ]" },
-      // CLIMAX BEAT DROP AT 20.5s:
+      // BEAT DROP AT 20.5s:
       { time: 20.5, text: "ពីយប់ដល់ភ្លឺ បងទប់ទឹកភ្នែកស្ទើរដាច់ដង្ហើម...", duration: 4.2, emote: "? <3", isBeatDrop: true, meta: "✦ [ ញញឹម • OLICA ] ✦" }
     ];
 
-    // EXACT BASS KICK TIMESTAMPS OF THE BEAT DROP RHYTHM
+    // DRUM KICK RHYTHM OF THE BEAT DROP
     const BEAT_HITS = [20.5, 21.3, 22.1, 22.9, 23.7, 24.5];
 
     let currentCard = null;
     let hasStarted = false;
     let firedLyrics = new Set();
     let firedHits = new Set();
+    let syncTimer = null;
 
+    // INTELLIGENT DUAL-SYNC ENGINE:
+    // If audio is playing, locks to audio.currentTime.
+    // If Safari delays audio, internal clock guarantees lyrics play!
     function startExperience() {
       if (hasStarted) return;
       hasStarted = true;
@@ -451,49 +453,56 @@
 
       const player = document.getElementById('song-player');
       player.muted = false;
+      player.load(); // Force iPad Safari to initialize media pipeline
 
       player.play().catch(e => {
-        console.warn("Playback error:", e);
+        console.log("Audio waiting on gesture or buffering:", e);
       });
 
       setInterval(spawnAmbientDoodle, 180);
 
-      // REAL-TIME AUDIO SYNCHRONIZATION: Listens directly to audio.currentTime
-      player.ontimeupdate = handleAudioSync;
+      const clockStart = performance.now();
 
-      // Loop video soundlessly when song finishes
-      player.onended = () => {
-        firedLyrics.clear();
-        firedHits.clear();
-        player.currentTime = 0;
-        player.play();
-      };
+      // High-precision clock running every 35ms (Never freezes!)
+      syncTimer = setInterval(() => {
+        let curTime = 0;
+        
+        // Priority 1: Use actual audio time if playing
+        if (!player.paused && player.currentTime > 0) {
+          curTime = player.currentTime;
+        } else {
+          // Priority 2: Use internal clock fallback (Guarantees zero freezing!)
+          curTime = (performance.now() - clockStart) / 1000;
+        }
+
+        // Trigger Lyrics
+        TIMED_LYRICS.forEach((item, idx) => {
+          if (curTime >= item.time && !firedLyrics.has(idx)) {
+            firedLyrics.add(idx);
+            const direction = (idx % 2 === 0) ? 'left' : 'right';
+            spawnSingleCard(item.text, item.duration, item.emote, direction, item.isBeatDrop, item.meta);
+          }
+        });
+
+        // Trigger Rhythmic Bass Rings & Shockwave
+        BEAT_HITS.forEach((beatTime, idx) => {
+          if (curTime >= beatTime && !firedHits.has(idx)) {
+            firedHits.add(idx);
+            triggerSoundwavePulse(idx === 0);
+          }
+        });
+
+        // Loop after 28 seconds
+        if (curTime >= 27.5) {
+          firedLyrics.clear();
+          firedHits.clear();
+          player.currentTime = 0;
+          player.play().catch(() => {});
+        }
+      }, 35);
     }
 
-    // Real-Time Audio-Synced Engine (Zero Drift)
-    function handleAudioSync() {
-      const player = document.getElementById('song-player');
-      const curTime = player.currentTime;
-
-      // 1. Sync Lyrics on audio clock
-      TIMED_LYRICS.forEach((item, idx) => {
-        if (curTime >= item.time && !firedLyrics.has(idx)) {
-          firedLyrics.add(idx);
-          const direction = (idx % 2 === 0) ? 'left' : 'right';
-          spawnSingleCard(item.text, item.duration, item.emote, direction, item.isBeatDrop, item.meta);
-        }
-      });
-
-      // 2. Trigger Rhythmic Sonic Ripples on the Drum Kicks of the Beat Drop
-      BEAT_HITS.forEach((beatTime, idx) => {
-        if (curTime >= beatTime && !firedHits.has(idx)) {
-          firedHits.add(idx);
-          triggerSoundwavePulse(idx === 0); // Full shockwave on first hit
-        }
-      });
-    }
-
-    // Pulsing Sonic Ripple radiating outward with the sound
+    // Sonic Ripple that expands outward from the card
     function triggerSoundwavePulse(isInitialDrop) {
       if (isInitialDrop) {
         document.body.classList.add('tremor-active');
@@ -510,15 +519,13 @@
         }
       }
 
-      // Spawn Sonic Ripple from the center of the active card
+      // Radiate Sonic Ripple from behind the card
       if (currentCard) {
         const rect = currentCard.getBoundingClientRect();
         const ripple = document.createElement('div');
         ripple.className = 'sound-ripple';
-        const rippleX = rect.left + rect.width / 2;
-        const rippleY = rect.top + rect.height / 2;
-        ripple.style.left = `${rippleX}px`;
-        ripple.style.top = `${rippleY}px`;
+        ripple.style.left = `${rect.left + rect.width / 2}px`;
+        ripple.style.top = `${rect.top + rect.height / 2}px`;
         ripple.style.width = `${rect.width * 0.75}px`;
         ripple.style.height = `${rect.height * 0.75}px`;
         document.body.appendChild(ripple);
@@ -552,9 +559,4 @@
     function spawnSingleCard(fullText, vocalDuration, emote, side, isBeatDrop, customMeta) {
       if (currentCard) {
         const oldCard = currentCard;
-        oldCard.classList.add('exiting');
-        setTimeout(() => oldCard.remove(), 380);
-      }
-
-      const card = document.createElement('div');
-      card.className = `sad-card ${side === 'left' ? 'from-left' : 'from-right'} ${isBeatD
+        oldCard.classList.
