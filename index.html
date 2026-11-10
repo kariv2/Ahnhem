@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>ញញឹម - OLICA X NICK IT</title>
+  <!-- Google Fonts for High-Quality Khmer Script -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Kantumruy+Pro:wght@400;600;700&display=swap" rel="stylesheet">
@@ -79,7 +80,9 @@
       pointer-events: none;
     }
 
-    /* 2. BEAT DROP CINEMATIC SHOCKWAVE & TREMOR */
+    /* ==========================================================
+       2. BEAT DROP CINEMATIC SHOCKWAVE & TREMOR
+       ========================================================== */
     #beat-flash {
       position: fixed;
       inset: 0;
@@ -107,7 +110,9 @@
       40%, 60% { transform: translate3d(4px, -3px, 0); }
     }
 
-    /* 3. EXTRA-LARGE SAD CARD */
+    /* ==========================================================
+       3. EXTRA-LARGE SAD CARD (ONE SIDE AT A TIME)
+       ========================================================== */
     .sad-card {
       position: fixed;
       width: min(92vw, 540px);
@@ -258,7 +263,7 @@
       100% { opacity: 0; transform: translateY(-550px) scale(1.3) rotate(calc(var(--rot, 5deg) * 2)); }
     }
 
-    /* 5. SAFARI OFF-SCREEN MEDIA ENGINE */
+    /* 5. OFF-SCREEN AUDIO ENGINE */
     #song-player {
       position: fixed;
       top: -9999px;
@@ -283,20 +288,10 @@
       z-index: 100000;
     }
 
-    .btn-group {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      align-items: center;
-      width: 100%;
-      max-width: 320px;
-    }
-
     #start-btn {
-      width: 100%;
-      padding: 18px 24px;
+      padding: 18px 46px;
       font-family: 'Kantumruy Pro', sans-serif;
-      font-size: 18px;
+      font-size: 19px;
       font-weight: 600;
       background: linear-gradient(135deg, #1e293b, #0f172a);
       color: #e2e8f0;
@@ -308,25 +303,6 @@
     }
     #start-btn:active { transform: scale(0.96); }
 
-    .audio-upload-container {
-      position: relative;
-      width: 100%;
-      padding: 12px 20px;
-      font-size: 13.5px;
-      color: #94a3b8;
-      background: rgba(30, 41, 59, 0.6);
-      border: 1px dashed rgba(148, 163, 184, 0.5);
-      border-radius: 25px;
-      text-align: center;
-      overflow: hidden;
-    }
-    .audio-upload-container input[type="file"] {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      opacity: 0;
-      cursor: pointer;
-    }
-
     .subtitle {
       margin-top: 14px;
       opacity: 0.6;
@@ -336,24 +312,17 @@
 </head>
 <body>
 
-  <!-- Media Player for MP4 Video / Audio -->
+  <!-- ============================================================== -->
+  <!-- DIRECT LINK TO YOUR UPLOADED TIKTOK VIDEO FILE                 -->
+  <!-- ============================================================== -->
   <video id="song-player" playsinline webkit-playsinline preload="auto">
-    <source src="music.mp4" type="video/mp4">
-    <source src="music.mp3" type="audio/mp3">
+    <source src="f12117c668798929d30d9a1344321ba7.mp4" type="video/mp4">
   </video>
 
   <!-- Start Overlay -->
   <div id="start-screen">
-    <div class="btn-group">
-      <button id="start-btn" onclick="startExperience()">▶ ចាក់ចម្រៀង (Play With Sound)</button>
-      
-      <!-- Video picker container -->
-      <div class="audio-upload-container">
-        <span id="audio-label">📁 ជ្រើសរើសវីដេអូពី Photo Library</span>
-        <input type="file" id="media-input" accept="video/*,audio/*" onchange="handleMediaUpload(this)">
-      </div>
-    </div>
-    <p class="subtitle" id="status-text">(ជ្រើសរើសវីដេអូ TikTok របស់អ្នក រួចចុច 'ចាក់ចម្រៀង')</p>
+    <button id="start-btn" onclick="startExperience()">▶ ចាក់ចម្រៀង (Play With Sound)</button>
+    <p class="subtitle">(បើកសំឡេងឡើងដើម្បីស្តាប់បទភ្លេង & អក្សរ)</p>
   </div>
 
   <div id="code-viewport"></div>
@@ -384,4 +353,197 @@
         '    <span class="kw">yield</span> {<span class="str">"epoch"</span>: <span class="var">t</span>, <span class="str">"hash"</span>: <span class="hex">0x9E3779B9</span>}',
         '<span class="kw">__global__ void</span> <span class="fn">VectorKernel</span>(<span class="type">float</span>* <span class="var">d_out</span>) {',
         '    <span class="type">int</span> <span class="var">idx</span> = blockIdx.x * blockDim.x + threadIdx.x;',
-        '    <span class="var">d_out</span>[<span class="var">idx</span>] = <span class="fn">__fmul_rn</span>(<span
+        '    <span class="var">d_out</span>[<span class="var">idx</span>] = <span class="fn">__fmul_rn</span>(<span class="var">val</span>, <span class="hex">0.9984f</span>);',
+        '}'
+      ];
+
+      const cols = window.innerWidth > 800 ? 3 : 2;
+      const linesNeeded = Math.ceil(window.innerHeight / 10) + 12;
+
+      let lineCounter = 1;
+      for (let c = 0; c < cols; c++) {
+        const pane = document.createElement('div');
+        pane.className = 'code-pane';
+        let gutterHtml = '';
+        let codeHtml = '';
+        
+        for (let l = 0; l < linesNeeded; l++) {
+          gutterHtml += `${lineCounter}<br>`;
+          codeHtml += snippets[(l + c * 6) % snippets.length] + '<br>';
+          lineCounter++;
+        }
+        
+        pane.innerHTML = `<div class="gutter">${gutterHtml}</div><div class="code-content">${codeHtml}</div>`;
+        container.appendChild(pane);
+      }
+    }
+
+    // TIMED KHMER LYRICS ("ញញឹម - SMILE")
+    const TIMED_LYRICS = [
+      { time: 1.0,  text: "តែបង នឹកអូន... តែបងនឹកអូន", duration: 3.2, emote: "~ ♡" },
+      { time: 5.0,  text: "នឹកស្នេហា យើងដំបូង...",       duration: 3.2, emote: "[ ♫ ]" },
+      { time: 8.5,  text: "ទីកន្លែងដែលយើងធ្លាប់ទៅជាមួយគ្នា សើចជាមួយគ្នា", duration: 4.2, emote: "( . . )" },
+      { time: 13.2, text: "ក្លាយទៅជាកន្លែង ដែលបងមិនចង់ឮ...", duration: 3.2, emote: "</3" },
+      { time: 16.8, text: "បេះដូងបងឈឺ... ហា... ហា...",   duration: 3.2, emote: "[ 💔 ]" },
+      // CLIMAX BEAT DROP AT 20.5s:
+      { time: 20.5, text: "ពីយប់ដល់ភ្លឺ បងទប់ទឹកភ្នែកស្ទើរដាច់ដង្ហើម...", duration: 4.2, emote: "? <3", isBeatDrop: true, meta: "✦ [ ញញឹម • OLICA ] ✦" }
+    ];
+
+    let currentCard = null;
+    let hasStarted = false;
+
+    function startExperience() {
+      if (hasStarted) return;
+      hasStarted = true;
+
+      document.getElementById('start-screen').style.display = 'none';
+
+      const player = document.getElementById('song-player');
+      player.muted = false;
+
+      // Play audio from your uploaded video file
+      player.play().catch(e => {
+        console.warn("Playback error:", e);
+      });
+
+      setInterval(spawnAmbientDoodle, 180);
+      playLoop();
+    }
+
+    function playLoop() {
+      TIMED_LYRICS.forEach((item, idx) => {
+        setTimeout(() => {
+          const direction = (idx % 2 === 0) ? 'left' : 'right';
+          spawnSingleCard(item.text, item.duration, item.emote, direction, item.isBeatDrop, item.meta);
+
+          if (item.isBeatDrop) {
+            triggerEmotionalBeatDrop();
+          }
+        }, item.time * 1000);
+      });
+
+      setTimeout(() => {
+        if (currentCard) {
+          currentCard.classList.add('exiting');
+          setTimeout(() => { currentCard?.remove(); currentCard = null; }, 400);
+        }
+      }, 26500);
+
+      setTimeout(playLoop, 28000);
+    }
+
+    function triggerEmotionalBeatDrop() {
+      document.body.classList.add('tremor-active');
+      setTimeout(() => document.body.classList.remove('tremor-active'), 650);
+
+      const flash = document.getElementById('beat-flash');
+      flash.classList.remove('active');
+      void flash.offsetWidth;
+      flash.classList.add('active');
+      setTimeout(() => flash.classList.remove('active'), 2500);
+
+      for (let i = 0; i < 40; i++) {
+        setTimeout(spawnBurstDoodle, i * 40);
+      }
+    }
+
+    function spawnBurstDoodle() {
+      const burstList = ['</3', '♡', '<3', '( . . )', '✧', '*ੈ✩', '˚₊·', '...', '˙ᵕ˙'];
+      const el = document.createElement('div');
+      el.className = 'burst-doodle';
+      el.textContent = burstList[Math.floor(Math.random() * burstList.length)];
+
+      const size = Math.floor(15 + Math.random() * 12);
+      el.style.fontSize = `${size}px`;
+
+      const rot = (Math.random() - 0.5) * 35;
+      el.style.setProperty('--rot', `${rot}deg`);
+
+      const x = Math.floor(Math.random() * (window.innerWidth - 40));
+      const y = Math.floor(window.innerHeight * 0.70 + Math.random() * (window.innerHeight * 0.25));
+
+      el.style.left = `${x}px`;
+      el.style.top = `${y}px`;
+      document.body.appendChild(el);
+
+      setTimeout(() => el.remove(), 6500);
+    }
+
+    function spawnSingleCard(fullText, vocalDuration, emote, side, isBeatDrop, customMeta) {
+      if (currentCard) {
+        const oldCard = currentCard;
+        oldCard.classList.add('exiting');
+        setTimeout(() => oldCard.remove(), 380);
+      }
+
+      const card = document.createElement('div');
+      card.className = `sad-card ${side === 'left' ? 'from-left' : 'from-right'} ${isBeatDrop ? 'climax-bloom' : ''}`;
+      
+      const metaText = customMeta || '✦ អនុស្សាវរីយ៍ • ០២:០០ យប់ ✦';
+      card.innerHTML = `<div class="card-meta">${metaText}</div><div class="card-lyric"></div>`;
+      document.body.appendChild(card);
+      currentCard = card;
+
+      const cardWidth = card.offsetWidth || 520;
+      const screenW = window.innerWidth;
+      const screenH = window.innerHeight;
+      let targetX, targetY;
+
+      if (screenW < 750) {
+        targetX = Math.max(16, (screenW - cardWidth) / 2);
+        targetY = screenH * 0.60;
+      } else {
+        const sideMargin = Math.max(40, screenW * 0.08);
+        targetX = (side === 'left') ? sideMargin : (screenW - cardWidth - sideMargin);
+        targetY = screenH * 0.58;
+      }
+
+      card.style.left = `${targetX}px`;
+      card.style.top = `${targetY}px`;
+
+      const lyricEl = card.querySelector('.card-lyric');
+      const words = fullText.split(' ');
+      const perWordDelay = (vocalDuration * 1000) / words.length;
+
+      words.forEach((word, index) => {
+        setTimeout(() => {
+          if (!card.parentNode) return;
+          const span = document.createElement('span');
+          span.className = 'lyric-word';
+          span.textContent = word;
+          lyricEl.appendChild(span);
+
+          if (emote && index === words.length - 1) {
+            const emoteEl = document.createElement('span');
+            emoteEl.className = 'doodle-emote';
+            emoteEl.textContent = emote;
+            lyricEl.appendChild(emoteEl);
+          }
+        }, index * perWordDelay);
+      });
+    }
+
+    function spawnAmbientDoodle() {
+      const doodleList = ['<3', '♡', '</3', '✧', '˚₊·', '˙ᵕ˙', '( . . )', '[ ✉ ]', '*ੈ✩', '⋆｡°', '୨୧', '☾'];
+      const el = document.createElement('div');
+      el.className = 'ambient-doodle';
+      el.textContent = doodleList[Math.floor(Math.random() * doodleList.length)];
+      
+      const size = Math.floor(13 + Math.random() * 9);
+      el.style.fontSize = `${size}px`;
+      
+      const x = Math.floor(Math.random() * (window.innerWidth - 40));
+      const y = Math.floor(window.innerHeight * 0.74 + Math.random() * (window.innerHeight * 0.22));
+
+      el.style.left = `${x}px`;
+      el.style.top = `${y}px`;
+      document.body.appendChild(el);
+
+      setTimeout(() => el.remove(), 5500);
+    }
+
+    fillCodeBackground();
+    window.addEventListener('resize', fillCodeBackground);
+  </script>
+</body>
+</html>
