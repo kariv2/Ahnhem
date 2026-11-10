@@ -263,9 +263,20 @@
       100% { opacity: 0; transform: translateY(-550px) scale(1.3) rotate(calc(var(--rot, 5deg) * 2)); }
     }
 
-    /* ==========================================================
-       5. START SCREEN & AUDIO CONTROLS (BYPASSES BROWSER BLOCK)
-       ========================================================== */
+    /* 
+      5. SMART OFF-SCREEN MEDIA ENGINE (BYPASSES SAFARI SUSPENSION)
+      Kept in the DOM with 0.01 opacity so iPad Safari plays video audio!
+    */
+    #song-player {
+      position: fixed;
+      top: -9999px;
+      left: -9999px;
+      width: 1px;
+      height: 1px;
+      opacity: 0.01;
+      pointer-events: none;
+    }
+
     #start-screen {
       position: fixed;
       inset: 0;
@@ -305,7 +316,6 @@
     }
     #start-btn:active { transform: scale(0.96); }
 
-    /* Custom audio picker container */
     .audio-upload-container {
       position: relative;
       width: 100%;
@@ -334,20 +344,24 @@
 </head>
 <body>
 
-  <!-- EMBEDDED AUDIO PLAYER (Looks for music.mp3 in your GitHub repo) -->
-  <audio id="song-player" preload="auto">
+  <!-- 
+    DUAL VIDEO/AUDIO PLAYER:
+    Works with TikTok .mp4 / .mov video downloads OR .mp3 audio files!
+  -->
+  <video id="song-player" playsinline webkit-playsinline>
+    <source src="music.mp4" type="video/mp4">
     <source src="music.mp3" type="audio/mp3">
-  </audio>
+  </video>
 
-  <!-- Start Overlay with Audio Triggers -->
+  <!-- Start Overlay -->
   <div id="start-screen">
     <div class="btn-group">
-      <button id="start-btn" onclick="startExperience()">▶ ចាក់ចម្រៀង (Play With Music)</button>
+      <button id="start-btn" onclick="startExperience()">▶ ចាក់ចម្រៀង (Play With Sound)</button>
       
-      <!-- Optional: Pick song directly from your iPad/Phone files -->
+      <!-- Pick your TikTok video file directly from your iPad Photos or Files -->
       <div class="audio-upload-container">
-        <span id="audio-label">📁 ជ្រើសរើសបទចម្រៀង (Select Audio)</span>
-        <input type="file" id="audio-input" accept="audio/*,video/*" onchange="handleAudioUpload(this)">
+        <span id="audio-label">📁 ជ្រើសរើសវីដេអូ/ចម្រៀង (Select TikTok Video)</span>
+        <input type="file" id="media-input" accept="video/*,audio/*" onchange="handleMediaUpload(this)">
       </div>
     </div>
     <p class="subtitle" id="status-text">(បើកសំឡេងឡើងដើម្បីស្តាប់បទភ្លេង & អក្សរ)</p>
@@ -420,27 +434,31 @@
     let currentCard = null;
     let hasStarted = false;
 
-    // Handles local audio file selected from iPad
-    function handleAudioUpload(input) {
+    // Handles picking video/audio file directly from your iPad
+    function handleMediaUpload(input) {
       if (input.files && input.files[0]) {
         const file = input.files[0];
         const player = document.getElementById('song-player');
         player.src = URL.createObjectURL(file);
-        document.getElementById('audio-label').innerText = "✓ បទចម្រៀងបានភ្ជាប់!";
+        document.getElementById('audio-label').innerText = "✓ បានភ្ជាប់វីដេអូ/ចម្រៀង!";
         document.getElementById('status-text').innerText = "រួចរាល់! ចុច 'ចាក់ចម្រៀង' ដើម្បីស្តាប់។";
       }
     }
 
-    // Starts both Music & Lyrics in lockstep
+    // Starts both audio/video sound and lyrics in lockstep
     function startExperience() {
       if (hasStarted) return;
       hasStarted = true;
 
       document.getElementById('start-screen').style.display = 'none';
 
-      // Play audio
       const player = document.getElementById('song-player');
-      player.play().catch(e => console.log("Audio autoplay prevented, playing visuals."));
+      player.muted = false;
+
+      // Play sound directly from video or audio
+      player.play().catch(e => {
+        console.warn("Media playback error:", e);
+      });
 
       // Start ambient floating doodles
       setInterval(spawnAmbientDoodle, 180);
@@ -461,7 +479,6 @@
         }, item.time * 1000);
       });
 
-      // Clear card after song ends & loop
       setTimeout(() => {
         if (currentCard) {
           currentCard.classList.add('exiting');
@@ -547,11 +564,4 @@
 
       words.forEach((word, index) => {
         setTimeout(() => {
-          if (!card.parentNode) return;
-          const span = document.createElement('span');
-          span.className = 'lyric-word';
-          span.textContent = word;
-          lyricEl.appendChild(span);
-
-          if (emote && index === words.length - 1) {
-         
+          if (!card.pare
