@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>ញញឹម - OLICA X NICK IT</title>
-  <!-- Google Fonts for High-Quality Khmer Script -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Kantumruy+Pro:wght@400;600;700&display=swap" rel="stylesheet">
@@ -37,6 +36,7 @@
       opacity: 0.82;
       pointer-events: none;
       overflow: hidden;
+      transition: opacity 0.3s ease, filter 0.3s ease;
     }
 
     .code-pane {
@@ -81,7 +81,7 @@
     }
 
     /* ==========================================================
-       2. BEAT DROP CINEMATIC SHOCKWAVE & TREMOR
+       2. BEAT DROP CINEMATIC SHOCKWAVE, TREMOR & SONIC RIPPLES
        ========================================================== */
     #beat-flash {
       position: fixed;
@@ -110,8 +110,29 @@
       40%, 60% { transform: translate3d(4px, -3px, 0); }
     }
 
+    /* SONIC BASS RIPPLES RADIATING WITH THE DRUM KICKS */
+    .sound-ripple {
+      position: fixed;
+      border-radius: 50%;
+      border: 1.5px solid rgba(144, 205, 244, 0.7);
+      box-shadow: 0 0 25px rgba(144, 205, 244, 0.5), inset 0 0 15px rgba(144, 205, 244, 0.3);
+      pointer-events: none;
+      z-index: 9500;
+      animation: rippleExpand 1.35s cubic-bezier(0.08, 0.82, 0.25, 1) forwards;
+    }
+    @keyframes rippleExpand {
+      0% {
+        transform: translate(-50%, -50%) scale(0.35);
+        opacity: 0.95;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(3.2);
+        opacity: 0;
+      }
+    }
+
     /* ==========================================================
-       3. EXTRA-LARGE SAD CARD (ONE SIDE AT A TIME)
+       3. EXTRA-LARGE SAD CARD WITH SOUNDWAVE UNDULATION
        ========================================================== */
     .sad-card {
       position: fixed;
@@ -138,12 +159,39 @@
       border: 1px solid rgba(210, 230, 255, 0.25); border-radius: 11px; pointer-events: none;
     }
 
+    /* CLIMAX BLOOM (Rhythmic pulse on the beat drop) */
     .sad-card.climax-bloom {
-      border-color: rgba(188, 227, 255, 0.92) !important;
+      border-color: rgba(188, 227, 255, 0.95) !important;
       box-shadow: 
         0 30px 65px rgba(0, 0, 0, 0.95),
         0 0 55px rgba(144, 205, 244, 0.75),
         inset 0 0 25px rgba(144, 205, 244, 0.35) !important;
+      /* Undulating S-Curve motion that flows with the sound */
+      animation: soundwaveClimaxFloat 6.8s cubic-bezier(0.16, 0.9, 0.3, 1) forwards !important;
+    }
+
+    @keyframes soundwaveClimaxFloat {
+      0% {
+        opacity: 0;
+        transform: translate3d(60px, 40px, 0) scale(0.92) rotate(2.5deg);
+      }
+      10% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+      }
+      30% {
+        transform: translate3d(-14px, -35px, 0) scale(1.03) rotate(-1deg);
+      }
+      55% {
+        transform: translate3d(16px, -75px, 0) scale(0.99) rotate(1.2deg);
+      }
+      80% {
+        transform: translate3d(-12px, -115px, 0) scale(1.02) rotate(-0.5deg);
+      }
+      100% {
+        opacity: 0.96;
+        transform: translate3d(0, -150px, 0) scale(1.01) rotate(0deg);
+      }
     }
 
     .from-left {
@@ -312,9 +360,7 @@
 </head>
 <body>
 
-  <!-- ============================================================== -->
-  <!-- DIRECT LINK TO YOUR UPLOADED TIKTOK VIDEO FILE                 -->
-  <!-- ============================================================== -->
+  <!-- Audio source from your uploaded video -->
   <video id="song-player" playsinline webkit-playsinline preload="auto">
     <source src="f12117c668798929d30d9a1344321ba7.mp4" type="video/mp4">
   </video>
@@ -389,8 +435,13 @@
       { time: 20.5, text: "ពីយប់ដល់ភ្លឺ បងទប់ទឹកភ្នែកស្ទើរដាច់ដង្ហើម...", duration: 4.2, emote: "? <3", isBeatDrop: true, meta: "✦ [ ញញឹម • OLICA ] ✦" }
     ];
 
+    // EXACT BASS KICK TIMESTAMPS OF THE BEAT DROP RHYTHM
+    const BEAT_HITS = [20.5, 21.3, 22.1, 22.9, 23.7, 24.5];
+
     let currentCard = null;
     let hasStarted = false;
+    let firedLyrics = new Set();
+    let firedHits = new Set();
 
     function startExperience() {
       if (hasStarted) return;
@@ -401,49 +452,78 @@
       const player = document.getElementById('song-player');
       player.muted = false;
 
-      // Play audio from your uploaded video file
       player.play().catch(e => {
         console.warn("Playback error:", e);
       });
 
       setInterval(spawnAmbientDoodle, 180);
-      playLoop();
+
+      // REAL-TIME AUDIO SYNCHRONIZATION: Listens directly to audio.currentTime
+      player.ontimeupdate = handleAudioSync;
+
+      // Loop video soundlessly when song finishes
+      player.onended = () => {
+        firedLyrics.clear();
+        firedHits.clear();
+        player.currentTime = 0;
+        player.play();
+      };
     }
 
-    function playLoop() {
+    // Real-Time Audio-Synced Engine (Zero Drift)
+    function handleAudioSync() {
+      const player = document.getElementById('song-player');
+      const curTime = player.currentTime;
+
+      // 1. Sync Lyrics on audio clock
       TIMED_LYRICS.forEach((item, idx) => {
-        setTimeout(() => {
+        if (curTime >= item.time && !firedLyrics.has(idx)) {
+          firedLyrics.add(idx);
           const direction = (idx % 2 === 0) ? 'left' : 'right';
           spawnSingleCard(item.text, item.duration, item.emote, direction, item.isBeatDrop, item.meta);
-
-          if (item.isBeatDrop) {
-            triggerEmotionalBeatDrop();
-          }
-        }, item.time * 1000);
+        }
       });
 
-      setTimeout(() => {
-        if (currentCard) {
-          currentCard.classList.add('exiting');
-          setTimeout(() => { currentCard?.remove(); currentCard = null; }, 400);
+      // 2. Trigger Rhythmic Sonic Ripples on the Drum Kicks of the Beat Drop
+      BEAT_HITS.forEach((beatTime, idx) => {
+        if (curTime >= beatTime && !firedHits.has(idx)) {
+          firedHits.add(idx);
+          triggerSoundwavePulse(idx === 0); // Full shockwave on first hit
         }
-      }, 26500);
-
-      setTimeout(playLoop, 28000);
+      });
     }
 
-    function triggerEmotionalBeatDrop() {
-      document.body.classList.add('tremor-active');
-      setTimeout(() => document.body.classList.remove('tremor-active'), 650);
+    // Pulsing Sonic Ripple radiating outward with the sound
+    function triggerSoundwavePulse(isInitialDrop) {
+      if (isInitialDrop) {
+        document.body.classList.add('tremor-active');
+        setTimeout(() => document.body.classList.remove('tremor-active'), 650);
 
-      const flash = document.getElementById('beat-flash');
-      flash.classList.remove('active');
-      void flash.offsetWidth;
-      flash.classList.add('active');
-      setTimeout(() => flash.classList.remove('active'), 2500);
+        const flash = document.getElementById('beat-flash');
+        flash.classList.remove('active');
+        void flash.offsetWidth;
+        flash.classList.add('active');
+        setTimeout(() => flash.classList.remove('active'), 2500);
 
-      for (let i = 0; i < 40; i++) {
-        setTimeout(spawnBurstDoodle, i * 40);
+        for (let i = 0; i < 40; i++) {
+          setTimeout(spawnBurstDoodle, i * 40);
+        }
+      }
+
+      // Spawn Sonic Ripple from the center of the active card
+      if (currentCard) {
+        const rect = currentCard.getBoundingClientRect();
+        const ripple = document.createElement('div');
+        ripple.className = 'sound-ripple';
+        const rippleX = rect.left + rect.width / 2;
+        const rippleY = rect.top + rect.height / 2;
+        ripple.style.left = `${rippleX}px`;
+        ripple.style.top = `${rippleY}px`;
+        ripple.style.width = `${rect.width * 0.75}px`;
+        ripple.style.height = `${rect.height * 0.75}px`;
+        document.body.appendChild(ripple);
+
+        setTimeout(() => ripple.remove(), 1400);
       }
     }
 
@@ -477,73 +557,4 @@
       }
 
       const card = document.createElement('div');
-      card.className = `sad-card ${side === 'left' ? 'from-left' : 'from-right'} ${isBeatDrop ? 'climax-bloom' : ''}`;
-      
-      const metaText = customMeta || '✦ អនុស្សាវរីយ៍ • ០២:០០ យប់ ✦';
-      card.innerHTML = `<div class="card-meta">${metaText}</div><div class="card-lyric"></div>`;
-      document.body.appendChild(card);
-      currentCard = card;
-
-      const cardWidth = card.offsetWidth || 520;
-      const screenW = window.innerWidth;
-      const screenH = window.innerHeight;
-      let targetX, targetY;
-
-      if (screenW < 750) {
-        targetX = Math.max(16, (screenW - cardWidth) / 2);
-        targetY = screenH * 0.60;
-      } else {
-        const sideMargin = Math.max(40, screenW * 0.08);
-        targetX = (side === 'left') ? sideMargin : (screenW - cardWidth - sideMargin);
-        targetY = screenH * 0.58;
-      }
-
-      card.style.left = `${targetX}px`;
-      card.style.top = `${targetY}px`;
-
-      const lyricEl = card.querySelector('.card-lyric');
-      const words = fullText.split(' ');
-      const perWordDelay = (vocalDuration * 1000) / words.length;
-
-      words.forEach((word, index) => {
-        setTimeout(() => {
-          if (!card.parentNode) return;
-          const span = document.createElement('span');
-          span.className = 'lyric-word';
-          span.textContent = word;
-          lyricEl.appendChild(span);
-
-          if (emote && index === words.length - 1) {
-            const emoteEl = document.createElement('span');
-            emoteEl.className = 'doodle-emote';
-            emoteEl.textContent = emote;
-            lyricEl.appendChild(emoteEl);
-          }
-        }, index * perWordDelay);
-      });
-    }
-
-    function spawnAmbientDoodle() {
-      const doodleList = ['<3', '♡', '</3', '✧', '˚₊·', '˙ᵕ˙', '( . . )', '[ ✉ ]', '*ੈ✩', '⋆｡°', '୨୧', '☾'];
-      const el = document.createElement('div');
-      el.className = 'ambient-doodle';
-      el.textContent = doodleList[Math.floor(Math.random() * doodleList.length)];
-      
-      const size = Math.floor(13 + Math.random() * 9);
-      el.style.fontSize = `${size}px`;
-      
-      const x = Math.floor(Math.random() * (window.innerWidth - 40));
-      const y = Math.floor(window.innerHeight * 0.74 + Math.random() * (window.innerHeight * 0.22));
-
-      el.style.left = `${x}px`;
-      el.style.top = `${y}px`;
-      document.body.appendChild(el);
-
-      setTimeout(() => el.remove(), 5500);
-    }
-
-    fillCodeBackground();
-    window.addEventListener('resize', fillCodeBackground);
-  </script>
-</body>
-</html>
+      card.className = `sad-card ${side === 'left' ? 'from-left' : 'from-right'} ${isBeatD
